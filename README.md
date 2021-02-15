@@ -1,8 +1,9 @@
 # What is this?
  A tic tac toe game created with the use of SDL2 C++ library.
 # TODO:
-1. Render O/X on mouse click\n
-1.1. Can't click on already occupied\n
-1.2. Check for win\n
-1.3. Redraw board\n
-2.
+1. Render O/X on mouse click
+2. Check whether occupied or not
+3. Redraw board
+4. Check for win condition
+5. Victory screen
+6. Title screen (with menu to choose whether to play against friend or A.I.)
