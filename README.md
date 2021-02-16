@@ -3,6 +3,6 @@
 # TODO:
 1. Render O/X on mouse click ✅
 2. Check whether occupied or not✅
-4. Check for win condition 
+4. Check for win condition ✅ 
 5. Victory screen
 6. Title screen (with menu to choose whether to play against friend or A.I.)
