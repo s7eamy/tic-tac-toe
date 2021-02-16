@@ -1,7 +1,6 @@
 #include <iostream>
 #include <SDL.h>
 #include <SDL_image.h>
-#include "Occupations.cpp"
 #include "Square.hpp"
 
 const int SCREEN_WIDTH = 602; 
@@ -25,6 +24,7 @@ void Draw_board( square board[] );
 std::string Enum_to_str( int val );
 SDL_Texture* LoadTexture( std::string path );
 bool InitMedia();
+bool CheckVictory( square board[] );
 
 int main(int argc, char* args[])
 {
@@ -52,7 +52,7 @@ int main(int argc, char* args[])
                 {
                     if( SDL_PointInRect(&click, &board[i].checker) == SDL_TRUE )
                     {
-                        if( !board[i].isOccupied() )
+                        if( board[i].isOccupied() == OCCUPIED_NOT )
                         {
                             board[i].Occupy( turn );
                             // draws naught or cross depending on whose turn it is
@@ -61,8 +61,16 @@ int main(int argc, char* args[])
                             else
                                 SDL_RenderCopy( gRenderer, gTextureX, NULL, &board[i].checker );
                             SDL_RenderPresent( gRenderer );
-                            turn = !turn; // other player
                             std::cout << "You occupied " << Enum_to_str( i ) << std::endl;
+                            if( CheckVictory( board ) )
+                            {
+                                running = false;
+                                std::string who = turn ? "O" : "X";
+                                std::cout << who << " has won!" << std::endl;
+                                SDL_Delay(2000);
+                            }
+                            else
+                                turn = !turn; // other player
                             break;
                         }
                         else
@@ -79,6 +87,30 @@ int main(int argc, char* args[])
     return 0;
 }
 
+// checks for victory in board
+bool CheckVictory( square board[] )
+{
+    // check for horizontal win
+    if( board[ TOP_LEFT ].isOccupied()    == board[ TOP_CENTER ].isOccupied()    && board[ TOP_LEFT ].isOccupied()    == board[ TOP_RIGHT ].isOccupied()     && board[ TOP_LEFT ].isOccupied()    != OCCUPIED_NOT )
+        return true;
+    if( board[ MIDDLE_LEFT ].isOccupied() == board[ MIDDLE_CENTER ].isOccupied() && board[ MIDDLE_LEFT ].isOccupied() == board[ MIDDLE_RIGHT ].isOccupied()  && board[ MIDDLE_LEFT ].isOccupied() != OCCUPIED_NOT )
+        return true;
+    if( board[ BOTTOM_LEFT ].isOccupied() == board[ BOTTOM_CENTER ].isOccupied() && board[ BOTTOM_LEFT ].isOccupied() == board[ BOTTOM_RIGHT ].isOccupied()  && board[ BOTTOM_LEFT ].isOccupied() != OCCUPIED_NOT )
+        return true;
+    // check for vertical win
+    if( board[ TOP_LEFT ].isOccupied()    == board[ MIDDLE_LEFT ].isOccupied()   && board[ TOP_LEFT ].isOccupied()    == board[ BOTTOM_LEFT ].isOccupied()   && board[ TOP_LEFT ].isOccupied()    != OCCUPIED_NOT )
+        return true;
+    if( board[ TOP_CENTER ].isOccupied()  == board[ MIDDLE_CENTER ].isOccupied() && board[ TOP_CENTER ].isOccupied()  == board[ BOTTOM_CENTER ].isOccupied() && board[ TOP_CENTER ].isOccupied()  != OCCUPIED_NOT )
+        return true;
+    if( board[ TOP_RIGHT ].isOccupied()   == board[ MIDDLE_RIGHT ].isOccupied()  && board[ TOP_RIGHT ].isOccupied()   == board[ BOTTOM_RIGHT ].isOccupied()  && board[ TOP_RIGHT ].isOccupied()   != OCCUPIED_NOT )
+        return true;
+    // check for diagonal win
+    if( board[ TOP_LEFT ].isOccupied()    == board[ MIDDLE_CENTER ].isOccupied() && board[ TOP_LEFT ].isOccupied()    == board[ BOTTOM_RIGHT ].isOccupied()  && board[ TOP_LEFT ].isOccupied()    != OCCUPIED_NOT )
+        return true;
+    if( board[ TOP_RIGHT ].isOccupied()   == board[ MIDDLE_CENTER ].isOccupied() && board[ TOP_RIGHT ].isOccupied()   == board[ BOTTOM_LEFT ].isOccupied()   && board[ TOP_RIGHT ].isOccupied()   != OCCUPIED_NOT )
+        return true;
+    return false;
+}
 // initializes media (images)
 bool InitMedia()
 {

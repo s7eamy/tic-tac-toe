@@ -2,13 +2,6 @@
 #include <SDL.h>
 #include "Square.hpp"
 
-enum occupations
-{
-    OCCUPIED_NOT,
-    OCCUPIED_X,
-    OCCUPIED_O
-};
-
 square::square() : occupiedByO( false ), occupiedByX( false ), checker( {0, 0, 0, 0} ) {}
 
 int square::isOccupied()

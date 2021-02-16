@@ -1,6 +1,13 @@
 #pragma once
 #include <SDL.h>
 
+enum occupations
+{
+    OCCUPIED_NOT = -1,
+    OCCUPIED_X = 2,
+    OCCUPIED_O = 1
+};
+
 class square
 {
     public:
