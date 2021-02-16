@@ -1,37 +1,77 @@
 #include <iostream>
 #include <SDL.h>
+#include <SDL_image.h>
+#include "Occupations.cpp"
+#include "Square.hpp"
 
-const int SCREEN_WIDTH = 600; 
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 602; 
+const int SCREEN_HEIGHT = 602;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
+SDL_Texture* gTextureX = NULL;
+SDL_Texture* gTextureO = NULL;
 enum positions
 {
     TOP_LEFT, TOP_CENTER, TOP_RIGHT,
     MIDDLE_LEFT, MIDDLE_CENTER, MIDDLE_RIGHT,
-    BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT
+    BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT,
+    NUM_OF_POSITIONS
 };
 
 bool Init();
 void Kill();
-void Init_rects( SDL_Rect arr[] );
-void Draw_board( const SDL_Rect board[] );
+void Init_rects( square arr[] );
+void Draw_board( square board[] );
+std::string Enum_to_str( int val );
+SDL_Texture* LoadTexture( std::string path );
+bool InitMedia();
 
 int main(int argc, char* args[])
 {
     if( !Init() ) return 1;
-    SDL_Rect checkers[9];
-    Init_rects( checkers );
-    Draw_board( checkers );
+    if( !InitMedia() ) return 1;
+    square board[9];
+    Init_rects( board );
+    Draw_board( board );
     SDL_Event e;
     bool running = true;
+    bool turn = 1; // 1 is O, 0 is X
     while( running )
     {
         while( SDL_PollEvent( &e ) > 0 )
         {
-            if( e.type == SDL_QUIT )
+            switch( e.type )
             {
+                case SDL_QUIT:
                 running = false;
+                break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                SDL_Point click = {e.button.x, e.button.y};
+                for( size_t i = 0; i < NUM_OF_POSITIONS; i++ )
+                {
+                    if( SDL_PointInRect(&click, &board[i].checker) == SDL_TRUE )
+                    {
+                        if( !board[i].isOccupied() )
+                        {
+                            board[i].Occupy( turn );
+                            // draws naught or cross depending on whose turn it is
+                            if( turn )
+                                SDL_RenderCopy( gRenderer, gTextureO, NULL, &board[i].checker );
+                            else
+                                SDL_RenderCopy( gRenderer, gTextureX, NULL, &board[i].checker );
+                            SDL_RenderPresent( gRenderer );
+                            turn = !turn; // other player
+                            std::cout << "You occupied " << Enum_to_str( i ) << std::endl;
+                            break;
+                        }
+                        else
+                        {
+                            std::cout << "This checker is occupied!" << std::endl;
+                        }
+                    }
+                }
+                break;
             }
         }
     }
@@ -39,42 +79,120 @@ int main(int argc, char* args[])
     return 0;
 }
 
-// draws the playing board
-void Draw_board( const SDL_Rect board[] )
+// initializes media (images)
+bool InitMedia()
+{
+    gTextureO = LoadTexture( "src/naught.png" );
+    if( !gTextureO )
+    {
+        std::cout << "Failed to load naught.png!\n";
+        return false;
+    }
+    gTextureX = LoadTexture( "src/cross.png" );
+    if( !gTextureX )
+    {
+        std::cout << "Failed to load cross.png!\n";
+        return false;
+    }
+    return true;
+}
+// loads .png from path
+SDL_Texture* LoadTexture( std::string path )
+{
+    SDL_Texture* newTexture = NULL;
+    SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
+    if( !loadedSurface )
+    {
+        std::cout << "Failed to load surface from " << path << "! Error: " << IMG_GetError() << std::endl;
+    }
+    else
+    {
+        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+        if( !newTexture )
+        {
+            std::cout << "Failed to create texture! Error: " << SDL_GetError() << std::endl;
+        }
+        SDL_FreeSurface( loadedSurface );
+    }
+    return newTexture;
+}
+// prints enum string
+std::string Enum_to_str( int val )
+{
+    switch( val )
+    {
+        case TOP_LEFT:
+        return "TOP_LEFT ";
+
+        case TOP_CENTER:
+        return "TOP_CENTER";
+
+        case TOP_RIGHT:
+        return "TOP_RIGHT";
+
+        case MIDDLE_LEFT:
+        return "MIDDLE_LEFT";
+
+        case MIDDLE_CENTER:
+        return "MIDDLE_CENTER";
+
+        case MIDDLE_RIGHT:
+        return "MIDDLE_RIGHT";
+
+        case BOTTOM_LEFT:
+        return "BOTTOM_LEFT";
+
+        case BOTTOM_CENTER:
+        return "BOTTOM_CENTER";
+
+        case BOTTOM_RIGHT:
+        return "BOTTOM_RIGHT";
+    }
+    return "";
+}
+// draws the playing board (NEEDS REFACTORING, MAKE IT CLEANER)
+void Draw_board( square board[] )
 {
     // colors the rectangles
-    SDL_SetRenderDrawColor( gRenderer, 0, 0, 0, 255 );
-    /*
-    SDL_RenderFillRect( gRenderer, &board[ TOP_LEFT ] );
-    SDL_RenderFillRect( gRenderer, &board[ TOP_RIGHT ] );
-    SDL_RenderFillRect( gRenderer, &board[ MIDDLE_CENTER ] );
-    SDL_RenderFillRect( gRenderer, &board[ BOTTOM_LEFT ] );
-    SDL_RenderFillRect( gRenderer, &board[ BOTTOM_RIGHT ] );
-    SDL_SetRenderDrawColor( gRenderer, 233, 233, 233, 255 );
-    SDL_RenderFillRect( gRenderer, &board[ TOP_CENTER ] );
-    SDL_RenderFillRect( gRenderer, &board[ MIDDLE_LEFT ] );
-    SDL_RenderFillRect( gRenderer, &board[ MIDDLE_RIGHT ] );
-    SDL_RenderFillRect( gRenderer, &board[ BOTTOM_CENTER ] );
-    */
+    SDL_SetRenderDrawColor( gRenderer, 255, 255, 255, 255 );
+    SDL_RenderFillRect( gRenderer, &board[ TOP_LEFT ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ TOP_RIGHT ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ MIDDLE_CENTER ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ BOTTOM_LEFT ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ BOTTOM_RIGHT ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ TOP_CENTER ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ MIDDLE_LEFT ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ MIDDLE_RIGHT ].checker );
+    SDL_RenderFillRect( gRenderer, &board[ BOTTOM_CENTER ].checker );
     // draws them on window
-    SDL_RenderDrawRects( gRenderer, board, 9 );
+    SDL_RenderDrawRect( gRenderer, &board[ TOP_LEFT ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ TOP_CENTER ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ TOP_RIGHT ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ MIDDLE_LEFT ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ MIDDLE_CENTER ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ MIDDLE_RIGHT ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ BOTTOM_LEFT ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ BOTTOM_CENTER ].checker );
+    SDL_RenderDrawRect( gRenderer, &board[ BOTTOM_RIGHT ].checker );
     SDL_RenderPresent( gRenderer );
 }
 // initialize array of SDL_Rectangles
-void Init_rects( SDL_Rect arr[] )
+void Init_rects( square board[] )
 {
+    int rect_h = SCREEN_HEIGHT/3;
+    int rect_w = SCREEN_WIDTH/3;
     // top row
-    arr[TOP_LEFT]      = { 0,                0,                 SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
-    arr[TOP_CENTER]    = { SCREEN_WIDTH/3,   0,                 SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
-    arr[TOP_RIGHT]     = { SCREEN_WIDTH/3*2, 0,                 SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
+    board[TOP_LEFT].checker      = { 0,          0,          rect_w, rect_h };
+    board[TOP_CENTER].checker    = { rect_w+1,   0,          rect_w, rect_h };
+    board[TOP_RIGHT].checker     = { rect_w*2+2, 0,          rect_w, rect_h };
     // middle row
-    arr[MIDDLE_LEFT]   = { 0,                SCREEN_HEIGHT/3,   SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
-    arr[MIDDLE_CENTER] = { SCREEN_WIDTH/3,   SCREEN_HEIGHT/3,   SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
-    arr[MIDDLE_RIGHT]  = { SCREEN_WIDTH/3*2, SCREEN_HEIGHT/3,   SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
+    board[MIDDLE_LEFT].checker   = { 0,          rect_h+1,   rect_w, rect_h };
+    board[MIDDLE_CENTER].checker = { rect_w+1,   rect_h+1,   rect_w, rect_h };
+    board[MIDDLE_RIGHT].checker  = { rect_w*2+2, rect_h+1,   rect_w, rect_h };
     // bottom row
-    arr[BOTTOM_LEFT]   = { 0,                SCREEN_HEIGHT/3*2, SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
-    arr[BOTTOM_CENTER] = { SCREEN_WIDTH/3,   SCREEN_HEIGHT/3*2, SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
-    arr[BOTTOM_RIGHT]  = { SCREEN_WIDTH/3*2, SCREEN_HEIGHT/3*2, SCREEN_WIDTH/3, SCREEN_HEIGHT/3 };
+    board[BOTTOM_LEFT].checker   = { 0,          rect_h*2+2, rect_w, rect_h };
+    board[BOTTOM_CENTER].checker = { rect_w+1,   rect_h*2+2, rect_w, rect_h };
+    board[BOTTOM_RIGHT].checker  = { rect_w*2+2, rect_h*2+2, rect_w, rect_h };
 }
 // create window, renderer, init sdl subsystems
 bool Init()
@@ -82,6 +200,12 @@ bool Init()
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
         std::cout << "SDL failed to initialize! Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+    int imgFlags = IMG_INIT_PNG;
+    if( !( IMG_Init( imgFlags ) & imgFlags ) )
+    {
+        std::cout << "IMG failed to initialize! Error: " << IMG_GetError() << std::endl;
         return false;
     }
     gWindow = SDL_CreateWindow( "Tic-Tac-Toe", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
@@ -96,7 +220,7 @@ bool Init()
         std::cout << "Failed to create renderer! Error: " << SDL_GetError() << std::endl;
         return false;
     }
-    SDL_SetRenderDrawColor( gRenderer, 255, 255, 255, 255 );
+    SDL_SetRenderDrawColor( gRenderer, 0, 0, 0, 255 );
     SDL_RenderClear( gRenderer );
     return true;
 }
@@ -107,5 +231,10 @@ void Kill()
     gWindow = NULL;
     SDL_DestroyRenderer( gRenderer );
     gRenderer = NULL;
+    SDL_DestroyTexture( gTextureO );
+    SDL_DestroyTexture( gTextureX );
+    gTextureO = NULL;
+    gTextureX = NULL;
+    IMG_Quit();
     SDL_Quit();
 }
