@@ -25,6 +25,7 @@ std::string Enum_to_str( int val );
 SDL_Texture* LoadTexture( std::string path );
 bool InitMedia();
 bool CheckVictory( square board[] );
+void Color( square* first, square* second, square* third );
 
 int main(int argc, char* args[])
 {
@@ -38,7 +39,7 @@ int main(int argc, char* args[])
     bool turn = 1; // 1 is O, 0 is X
     while( running )
     {
-        while( SDL_PollEvent( &e ) > 0 )
+        while( SDL_PollEvent( &e ) > 0 && running )
         {
             switch( e.type )
             {
@@ -87,40 +88,75 @@ int main(int argc, char* args[])
     return 0;
 }
 
+// colors rectangle green
+void Color( square* first, square* second, square* third )
+{
+    SDL_SetRenderDrawBlendMode( gRenderer, SDL_BLENDMODE_BLEND );
+    SDL_SetRenderDrawColor( gRenderer, 163, 211, 170, 140 );
+    SDL_RenderFillRect( gRenderer, &first->checker );
+    SDL_RenderFillRect( gRenderer, &second->checker );
+    SDL_RenderFillRect( gRenderer, &third->checker );
+    SDL_RenderPresent( gRenderer );
+}
 // checks for victory in board
 bool CheckVictory( square board[] )
 {
+    bool win = false;
     // check for horizontal win
     if( board[ TOP_LEFT ].isOccupied()    == board[ TOP_CENTER ].isOccupied()    && board[ TOP_LEFT ].isOccupied()    == board[ TOP_RIGHT ].isOccupied()     && board[ TOP_LEFT ].isOccupied()    != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ TOP_LEFT ], &board[ TOP_CENTER ], &board[ TOP_RIGHT ] );
+        win = true;
+    }
     if( board[ MIDDLE_LEFT ].isOccupied() == board[ MIDDLE_CENTER ].isOccupied() && board[ MIDDLE_LEFT ].isOccupied() == board[ MIDDLE_RIGHT ].isOccupied()  && board[ MIDDLE_LEFT ].isOccupied() != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ MIDDLE_LEFT ], &board[ MIDDLE_CENTER ], &board[ MIDDLE_RIGHT ] );
+        win = true;
+    }
     if( board[ BOTTOM_LEFT ].isOccupied() == board[ BOTTOM_CENTER ].isOccupied() && board[ BOTTOM_LEFT ].isOccupied() == board[ BOTTOM_RIGHT ].isOccupied()  && board[ BOTTOM_LEFT ].isOccupied() != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ BOTTOM_LEFT ], &board[ BOTTOM_CENTER ], &board[ BOTTOM_RIGHT ] );
+        win = true;
+    }
     // check for vertical win
     if( board[ TOP_LEFT ].isOccupied()    == board[ MIDDLE_LEFT ].isOccupied()   && board[ TOP_LEFT ].isOccupied()    == board[ BOTTOM_LEFT ].isOccupied()   && board[ TOP_LEFT ].isOccupied()    != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ TOP_LEFT ], &board[ MIDDLE_LEFT ], &board[ BOTTOM_LEFT ] );
+        win = true;
+    }
     if( board[ TOP_CENTER ].isOccupied()  == board[ MIDDLE_CENTER ].isOccupied() && board[ TOP_CENTER ].isOccupied()  == board[ BOTTOM_CENTER ].isOccupied() && board[ TOP_CENTER ].isOccupied()  != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ TOP_CENTER ], &board[ MIDDLE_CENTER ], &board[ BOTTOM_CENTER ] );
+        win = true;
+    }
     if( board[ TOP_RIGHT ].isOccupied()   == board[ MIDDLE_RIGHT ].isOccupied()  && board[ TOP_RIGHT ].isOccupied()   == board[ BOTTOM_RIGHT ].isOccupied()  && board[ TOP_RIGHT ].isOccupied()   != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ TOP_RIGHT ], &board[ MIDDLE_RIGHT ], &board[ BOTTOM_RIGHT ] );
+        win = true;
+    }
     // check for diagonal win
     if( board[ TOP_LEFT ].isOccupied()    == board[ MIDDLE_CENTER ].isOccupied() && board[ TOP_LEFT ].isOccupied()    == board[ BOTTOM_RIGHT ].isOccupied()  && board[ TOP_LEFT ].isOccupied()    != OCCUPIED_NOT )
-        return true;
+    {
+        Color( &board[ TOP_LEFT ], &board[ MIDDLE_CENTER ], &board[ BOTTOM_RIGHT ] );
+        win = true;
+    }
     if( board[ TOP_RIGHT ].isOccupied()   == board[ MIDDLE_CENTER ].isOccupied() && board[ TOP_RIGHT ].isOccupied()   == board[ BOTTOM_LEFT ].isOccupied()   && board[ TOP_RIGHT ].isOccupied()   != OCCUPIED_NOT )
-        return true;
-    return false;
+    {
+        Color( &board[ TOP_RIGHT ], &board[ MIDDLE_CENTER ], &board[ BOTTOM_LEFT ] );
+        win = true;
+    }
+    return win;
 }
 // initializes media (images)
 bool InitMedia()
 {
-    gTextureO = LoadTexture( "src/naught.png" );
+    gTextureO = LoadTexture( "naught.png" );
     if( !gTextureO )
     {
         std::cout << "Failed to load naught.png!\n";
         return false;
     }
-    gTextureX = LoadTexture( "src/cross.png" );
+    gTextureX = LoadTexture( "cross.png" );
     if( !gTextureX )
     {
         std::cout << "Failed to load cross.png!\n";
