@@ -26,6 +26,7 @@ SDL_Texture* LoadTexture( std::string path );
 bool InitMedia();
 bool CheckVictory( square board[] );
 void Color( square* first, square* second, square* third );
+bool CheckDraw( square board[] );
 
 int main(int argc, char* args[])
 {
@@ -37,6 +38,7 @@ int main(int argc, char* args[])
     SDL_Event e;
     bool running = true;
     bool turn = 1; // 1 is O, 0 is X
+    std::cout << "It is now O's turn!\n";
     while( running )
     {
         while( SDL_PollEvent( &e ) > 0 && running )
@@ -62,16 +64,26 @@ int main(int argc, char* args[])
                             else
                                 SDL_RenderCopy( gRenderer, gTextureX, NULL, &board[i].checker );
                             SDL_RenderPresent( gRenderer );
-                            std::cout << "You occupied " << Enum_to_str( i ) << std::endl;
+                            //std::cout << "You occupied " << Enum_to_str( i ) << std::endl;
                             if( CheckVictory( board ) )
                             {
                                 running = false;
-                                std::string who = turn ? "O" : "X";
+                                char who = turn ? 'O' : 'X';
                                 std::cout << who << " has won!" << std::endl;
                                 SDL_Delay(2000);
                             }
+                            else if( CheckDraw( board ) )
+                            {
+                                running = false;
+                                std::cout << "It's a draw!" << std::endl;
+                                SDL_Delay(2000);
+                            }
                             else
-                                turn = !turn; // other player
+                            {
+                                turn = !turn; // other p
+                                char who = turn ? 'O' : 'X';
+                                std::cout << "It is now " << who << "'s turn!" << std::endl;
+                            }
                             break;
                         }
                         else
@@ -88,6 +100,16 @@ int main(int argc, char* args[])
     return 0;
 }
 
+// checks if draw
+bool CheckDraw( square board[] )
+{
+    for( size_t i = 0; i < NUM_OF_POSITIONS; i++ )
+    {
+        if( board[i].isOccupied() == OCCUPIED_NOT )
+            return false;
+    }
+    return true;
+}
 // colors rectangle green
 void Color( square* first, square* second, square* third )
 {
@@ -218,7 +240,7 @@ std::string Enum_to_str( int val )
     }
     return "";
 }
-// draws the playing board (NEEDS REFACTORING, MAKE IT CLEANER)
+// draws the playing board (this has to be cleaned up)
 void Draw_board( square board[] )
 {
     // colors the rectangles
