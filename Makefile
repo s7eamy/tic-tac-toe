@@ -8,7 +8,6 @@ BUILD_DIR := ./build
 # header file dir
 INC_DIRS := include
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
-CPP_FLAGs := $(INC_FLAGS) -MMD -MP
 
 # list of all source files
 SRCS := $(shell find $(SRC_DIR) -name *.cpp)
@@ -26,9 +25,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
 	$(CC) $(INC_FLAGS) -MMD -MP -c $^ -o $@ 
 
-speak:
-	echo $(CPP_FLAGS)
-
+# dont want to delete the .pngs
 clean:
 	rm $(BUILD_DIR)/*.o
 	rm $(BUILD_DIR)/$(FINAL_EXEC)
