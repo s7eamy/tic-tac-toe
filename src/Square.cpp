@@ -1,5 +1,5 @@
 #include <iostream>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "Square.hpp"
 
 square::square() : occupiedByO( false ), occupiedByX( false ), checker( {0, 0, 0, 0} ) {}
