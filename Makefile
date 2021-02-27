@@ -28,5 +28,5 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 # dont want to delete the .pngs
 clean:
 	rm $(BUILD_DIR)/*.o
-	rm $(BUILD_DIR)/$(FINAL_EXEC)
 	rm $(BUILD_DIR)/*.d
+	rm $(BUILD_DIR)/$(FINAL_EXEC)
